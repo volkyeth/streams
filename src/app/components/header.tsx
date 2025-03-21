@@ -8,7 +8,7 @@ export default function Header() {
 
    return (
       <div className='flex flex-row justify-between w-full mb-6'>
-         <div>payroll.wtf</div>
+         <div>payroll.nouns.day</div>
          {isConnected && <CustomConnectButton />}
       </div>
    )
