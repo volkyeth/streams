@@ -1,16 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import useGetName from '../hooks/useGetName'
-import {
-   useContractRead,
-   useContractReads,
-   useContractWrite,
-   usePrepareContractWrite,
-} from 'wagmi'
+import { useContractReads, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import { streamABI } from '../const/streamAbi'
-import { Log, PropDatePropInfo } from '../const/types'
-import axios from 'axios'
+import { Log } from '../const/types'
+import useGetName from '../hooks/useGetName'
 import useGetPropdateInfo from '../hooks/useGetPropdateInfo'
 
 function formatDate(d: Date): string {
@@ -99,7 +93,13 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
 
    return (
       <div className='flex flex-row gap-x-2 items-center text-sm'>
-         <div className='w-12'>{propID}</div>
+         <Link
+            className='w-12 hover:underline'
+            href={`https://www.nouns.camp/proposals/${propID}`}
+            target='_blank'
+         >
+            {propID}
+         </Link>
          {!user && (
             <Link
                className='w-44 hover:underline text-gray-500'
