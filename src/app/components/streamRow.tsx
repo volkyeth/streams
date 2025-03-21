@@ -5,7 +5,6 @@ import { useContractReads, useContractWrite, usePrepareContractWrite } from 'wag
 import { streamABI } from '../const/streamAbi'
 import { Log } from '../const/types'
 import useGetName from '../hooks/useGetName'
-import useGetPropdateInfo from '../hooks/useGetPropdateInfo'
 
 function formatDate(d: Date): string {
    return d.toLocaleDateString(undefined, {
@@ -13,36 +12,18 @@ function formatDate(d: Date): string {
       month: '2-digit',
       day: '2-digit',
    })
-   const day = d.getDate()
-   const month = d.getMonth()
-   const year = d.getFullYear()
-   const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-   ]
-   return month + 1 + '/' + day + '/' + year.toString().slice(-2)
-   const formattedDay =
-      day + (day % 10 == 1 ? 'st' : day % 10 == 2 ? 'nd' : day % 10 == 3 ? 'rd' : 'th')
-   return (
-      monthNames[month] +
-      ' ' +
-      formattedDay +
-      (year != 2023 ? " '" + year.toString().slice(-2) : '')
-   )
 }
 
 export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
-   const { stream, recipient, token, tokenAmount, propID } = log
+   const {
+      stream,
+      recipient,
+      token,
+      tokenAmount,
+      propID,
+      propdateCount,
+      propdateCompleted,
+   } = log
    const { data } = useContractReads({
       contracts: [
          {
@@ -67,7 +48,6 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
    })
 
    const { write, data: writeData, isSuccess } = useContractWrite(config)
-   const { prop: propdateData } = useGetPropdateInfo(propID, true)
 
    const streamAmount = tokenAmount / 10 ** (token == 'USDC' ? 6 : 18)
    const withdrawableFormatted = !withdrawable
@@ -125,9 +105,9 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
                target='_blank'
                className='hover:underline text-gray-500'
             >
-               {`${propdateData ? propdateData.count : 0}`}
+               {`${propdateCount || 0}`}
             </Link>
-            <div> {propdateData && propdateData.isCompleted ? '✅' : '⏳'}</div>
+            <div> {propdateCompleted ? '✅' : '⏳'}</div>
          </div>
 
          {user && (

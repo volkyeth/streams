@@ -33,7 +33,57 @@ const getData = cache(async () => {
       })
       propIDs.push(id)
    }
-   let returnLogs = []
+
+   const query = `query {
+      propUpdates(
+        where: {  prop_in: [${propIDs
+           .map((r) => `"${r[0].args.id?.toString()}"`)
+           .join(',')}]},
+        orderBy:prop__id
+        orderDirection: desc,
+        first: 1000
+      ) {
+        id,
+        isCompleted
+      }
+    }`
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '')
+
+   const propdateCounts = await fetch('https://www.nouns.camp/subgraphs/propdates', {
+      body: `{"query": "${query}"}`,
+      headers: {
+         'Content-Type': 'application/json',
+      },
+      method: 'POST',
+   })
+      .then((r) => r.json())
+      .then(
+         (r: {
+            data: {
+               propUpdates: [
+                  {
+                     id: `${number}-${number}`
+                     isCompleted: boolean
+                  },
+               ]
+            }
+         }) =>
+            r.data.propUpdates.reduce(
+               (propdates, propdate) => ({
+                  ...propdates,
+                  [propdate.id.split('-')[0]]: {
+                     count: propdates[propdate.id.split('-')[0]]?.count + 1 || 1,
+                     isCompleted:
+                        propdate.isCompleted ||
+                        propdates[propdate.id.split('-')[0]]?.isCompleted,
+                  },
+               }),
+               {} as Record<string, { count: number; isCompleted: boolean }>
+            )
+      )
+
+   let returnLogs: Log[] = []
 
    for (const [i, l] of logs.entries()) {
       returnLogs.push({
@@ -47,6 +97,9 @@ const getData = cache(async () => {
          stopTime: Number(l.args.stopTime!),
          tokenAmount: Number(l.args.tokenAmount),
          propID: Number(propIDs[i][0].args.id),
+         propdateCompleted:
+            propdateCounts[propIDs[i][0].args.id!.toString()]?.isCompleted,
+         propdateCount: propdateCounts[propIDs[i][0].args.id!.toString()]?.count,
       })
    }
    return returnLogs

@@ -6,11 +6,6 @@ export type Log = {
    stopTime: number
    tokenAmount: number
    propID: number
-}
-
-export type PropDatePropInfo = {
-   id: string
-   title: string
-   isCompleted: boolean
-   count: Number
+   propdateCount?: number
+   propdateCompleted?: boolean
 }
