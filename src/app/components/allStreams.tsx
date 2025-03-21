@@ -117,10 +117,9 @@ export default async function AllStreams() {
             <div className='text-xl'>All Streams</div>
             <div className='flex flex-row gap-x-2 font-bold'>
                <div className='w-12'>Prop</div>
-               <div className='w-44'>Recipient</div>
-               <div className='w-32'>Amount</div>
-               <div className='w-28'>Start Time</div>
-               <div className='w-28'>End Time</div>
+               <div className='w-48'>Recipient</div>
+               <div className='w-64'>Amount</div>
+               <div className='w-64'>Duration</div>
                <div className='w-44 hidden lg:block'>Progress</div>
                <div className='w-24'>Propdates</div>
             </div>

@@ -70,6 +70,7 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
    for (let i = 0; i < 10; i++) {
       otherPString += i < timePct * 10 - 1 ? '▓' : '░'
    }
+   const months = Math.floor((log.stopTime - log.startTime) / (60 * 60 * 24 * 30))
 
    return (
       <div className='flex flex-row gap-x-2 items-center text-sm'>
@@ -82,7 +83,7 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
          </Link>
          {!user && (
             <Link
-               className='w-44 hover:underline text-gray-500'
+               className='w-48 hover:underline text-gray-500'
                href={`https://etherscan.io/address/${recipient}`}
                target='_blank'
             >
@@ -90,14 +91,19 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
             </Link>
          )}
          <Link
-            className='w-32 hover:underline text-gray-500'
+            className='w-64 hover:underline text-gray-500'
             href={`https://etherscan.io/address/${stream}`}
             target='_blank'
          >
-            {`${streamAmount.toLocaleString('en-US')} ${token}`}
+            {`${streamAmount.toLocaleString('en-US')} ${token} (${Math.min(
+               Math.floor(streamAmount / months),
+               streamAmount
+            ).toLocaleString('en-US')}/mo)`}
          </Link>
-         <div className='w-28'>{formatDate(new Date(log.startTime * 1000))}</div>
-         <div className='w-28'>{formatDate(new Date(log.stopTime * 1000))}</div>
+         <div className='w-64'>
+            {formatDate(new Date(log.startTime * 1000))}-
+            {formatDate(new Date(log.stopTime * 1000))} ({months} mo)
+         </div>
          <div className='w-44 hidden lg:block'>{otherPString}</div>
          <div className='w-24 flex flex-row gap-x-1'>
             <Link
@@ -109,7 +115,6 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
             </Link>
             <div> {propdateCompleted ? '✅' : '⏳'}</div>
          </div>
-
          {user && (
             <button
                className={`text-sm text-gray-800 rounded border border-gray-300 px-3 py-1 shadow-sm hover:shadow hover:bg-gray-50 bg-white
