@@ -31,25 +31,23 @@ const getData = cache(async () => {
 
    const cancellationTimestamp = (
       await Promise.all(
-         logs
-            .filter((l) => Number(l.args.stopTime!) > Date.now() / 1000)
-            .map(async (l) => ({
-               streamAddress: l.args.streamAddress,
-               cancelledBalance: await client
-                  .getLogs({
-                     address: l.args.streamAddress,
-                     event: getAbiItem({ abi: streamABI, name: 'StreamCancelled' }),
-                     fromBlock: BigInt(17212788),
-                     toBlock: 'latest',
-                  })
-                  .then((r) =>
-                     r[0]?.blockNumber
-                        ? client
-                             .getBlock({ blockNumber: r[0].blockNumber })
-                             .then((b) => Number(b.timestamp))
-                        : undefined
-                  ),
-            }))
+         logs.map(async (l) => ({
+            streamAddress: l.args.streamAddress,
+            cancelledBalance: await client
+               .getLogs({
+                  address: l.args.streamAddress,
+                  event: getAbiItem({ abi: streamABI, name: 'StreamCancelled' }),
+                  fromBlock: BigInt(17212788),
+                  toBlock: 'latest',
+               })
+               .then((r) =>
+                  r[0]?.blockNumber
+                     ? client
+                          .getBlock({ blockNumber: r[0].blockNumber })
+                          .then((b) => Number(b.timestamp))
+                     : undefined
+               ),
+         }))
       )
    ).reduce(
       (cancellationTimestamps, curr) => {
