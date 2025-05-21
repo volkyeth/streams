@@ -8,4 +8,5 @@ export type Log = {
    propID: number
    propdateCount?: number
    propdateCompleted?: boolean
+   cancellationTime?: number
 }

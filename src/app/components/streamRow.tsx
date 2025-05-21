@@ -53,10 +53,9 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
    const withdrawableFormatted = !withdrawable
       ? 0
       : (Number(withdrawable) / 10 ** (token == 'USDC' ? 6 : 18)).toFixed(2)
-
-   let timePct =
-      (new Date().getTime() - log.startTime * 1000) /
-      (log.stopTime * 1000 - log.startTime * 1000)
+   let timePct = log.cancellationTime
+      ? (log.cancellationTime - log.startTime) / (log.stopTime - log.startTime)
+      : (new Date().getTime() / 1000 - log.startTime) / (log.stopTime - log.startTime)
    let otherPString =
       timePct < 0
          ? `0% \xa0`
@@ -65,6 +64,10 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
          : Number((timePct * 100).toFixed(0)) < 10
          ? `${(timePct * 100).toFixed(0)}% \xa0`
          : `${(timePct * 100).toFixed(0)}% `
+
+   if (log.propID === 711) {
+      console.log(timePct)
+   }
 
    otherPString += `\xa0`
    for (let i = 0; i < 10; i++) {
@@ -104,7 +107,12 @@ export default function StreamRow({ user, log }: { user: boolean; log: Log }) {
             {formatDate(new Date(log.startTime * 1000))}-
             {formatDate(new Date(log.stopTime * 1000))} ({months} mo)
          </div>
-         <div className='w-44 hidden lg:block'>{otherPString}</div>
+         <div
+            className='w-44 hidden lg:block data-[cancelled=true]:text-red-500'
+            data-cancelled={log.cancellationTime !== undefined}
+         >
+            {otherPString}
+         </div>
          <div className='w-24 flex flex-row gap-x-1'>
             <Link
                href={`https://updates.wtf/prop/${propID}`}

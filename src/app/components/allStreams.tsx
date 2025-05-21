@@ -1,5 +1,6 @@
+import { streamABI } from '@/app/const/streamAbi'
 import { cache } from 'react'
-import { createPublicClient, http, parseAbiItem } from 'viem'
+import { createPublicClient, getAbiItem, http, parseAbiItem } from 'viem'
 import { mainnet } from 'viem/chains'
 import { Log } from '../const/types'
 import Header from './header'
@@ -9,6 +10,9 @@ export const revalidate = 300 // revalidate the data at most every 5 minutes?
 
 const getData = cache(async () => {
    const client = createPublicClient({
+      batch: {
+         multicall: true,
+      },
       chain: mainnet,
       transport: http(
          `https://eth-mainnet.g.alchemy.com/v2/${
@@ -24,6 +28,38 @@ const getData = cache(async () => {
       fromBlock: BigInt(17212788),
       toBlock: 'latest',
    })
+
+   const cancellationTimestamp = (
+      await Promise.all(
+         logs
+            .filter((l) => Number(l.args.stopTime!) > Date.now() / 1000)
+            .map(async (l) => ({
+               streamAddress: l.args.streamAddress,
+               cancelledBalance: await client
+                  .getLogs({
+                     address: l.args.streamAddress,
+                     event: getAbiItem({ abi: streamABI, name: 'StreamCancelled' }),
+                     fromBlock: BigInt(17212788),
+                     toBlock: 'latest',
+                  })
+                  .then((r) =>
+                     r[0]?.blockNumber
+                        ? client
+                             .getBlock({ blockNumber: r[0].blockNumber })
+                             .then((b) => Number(b.timestamp))
+                        : undefined
+                  ),
+            }))
+      )
+   ).reduce(
+      (cancellationTimestamps, curr) => {
+         if (curr.cancelledBalance) {
+            cancellationTimestamps[curr.streamAddress!] = curr.cancelledBalance
+         }
+         return cancellationTimestamps
+      },
+      {} as Record<`0x${string}`, number>
+   )
 
    let propIDs = []
    for (const log of logs) {
@@ -100,6 +136,7 @@ const getData = cache(async () => {
          propdateCompleted:
             propdateCounts[propIDs[i][0].args.id!.toString()]?.isCompleted,
          propdateCount: propdateCounts[propIDs[i][0].args.id!.toString()]?.count,
+         cancellationTime: cancellationTimestamp[l.args.streamAddress!],
       })
    }
    return returnLogs
